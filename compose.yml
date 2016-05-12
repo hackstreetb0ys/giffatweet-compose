@@ -1,0 +1,41 @@
+gateway:
+  image: dockercloud/haproxy
+  links:
+    - scraper
+    - rabbit
+  ports:
+    - "8080:8080"
+scraper:
+  image: anvilcity/anvil-twitter-scraper
+  links:
+    - rabbit
+  environment:
+     - RABBITMQ_URL=rabbit
+rabbit:
+  image: rabbitmq:3-management
+  ports:
+    - "15672:15672"
+  links:
+    - elastic
+  environment:
+    - RABBITMQ_DEFAULT_USER=user
+    - RABBITMQ_DEFAULT_PASS=password
+    - VIRTUAL_HOST=*:15672
+parser:
+  image: anvilcity/tweet-parser
+  links:
+    - rabbit
+elastic:
+  image: elasticsearch
+  ports:
+    - "9200:9200"
+    - "9300:9300"
+pusher:
+  image: anvilcity/tweet-pusher
+  links:
+    - elastic
+tone-parser:
+  image: anvilcity/tone-parser
+  links:
+    - rabbit
+    - elastic
